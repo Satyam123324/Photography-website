@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Photograpy website</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz@9..40&family=Edu+VIC+WA+NT+Beginner&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"
+        integrity="sha512-Kc323vGBEqzTmouAECnVceyQqyqdsSiqLQISBL29aUW4U/M7pSPA/gEUZQqv1cwx4OnYxTxve5UMg5GT6L4JJg=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+</head>
+
+<body>
+    <div class="back" id="home">
+        <header>
+            <nav>
+                <div class="first">Aggarwal Creation</div>
+                <input type="checkbox" id="click">
+                <label for="click" class="menu-btn">
+                    <i class="fas fa-bars"></i>
+                </label>
+                <ul>
+                    <li><a href="#home">Home</a></li>
+                    <li><a href="#about">About Me</a></li>
+                    <li><a href="#clicks">My clicks</a></li>
+                    <li><a href="#services">Services</a></li>
+                    <li><a href="#contact">Contact</a></li>
+                </ul>
+
+            </nav>
+
+        </header>
+    </div>
+    <main>
+        <!-- about me  section-->
+        <section class="one">
+            <h2 id="about">About Me</h2>
+            <img src="img2.jpg" alt="owner">
+            <p>I have been taking photos ever since I won an instamatic camera at age six. As a child I remember
+                experimenting with 3D pictures by taking two different shots of the same scene. Of course everything was
+                film and print back then. I blew my pocket money pretty quickly!
+            </p>
+            <p>I had the wonderful privilege of growing up in the wild, open and unspoilt surroundings of the Scottish
+                Highlands, so inevitably my love affair with Scotland's staggering landscapes began there along with an
+                understanding of composition and light forms. Over the years I've developed a style that pushes the
+                boundary between photography and art. </p>
+            <p>I specialise in landscape and all forms of portrait photography </p>
+
+        </section>
+        <hr>
+        <!--my click section-->
+        <section class="two" id="clicks">
+            <h2>My Clicks</h2>
+            <div class="bg">
+                <div class="card">
+                    <a href="wedding.html"><img src="img3.jpg" alt="wedding"></a>
+                    <div class="topic">
+                        <h3>Wedding</h3>
+                        <p>Love Captured, Memories Treasured.</p>
+                    </div>
+                </div>
+                <div class="card">
+                    <a href="nature.html"><img src="img4.jpg" alt="nature"></a>
+                    <div class="topic">
+                        <h3>Nature</h3>
+                        <p>Look deep into nature, and then you will understand everything better.</p>
+                    </div>
+                </div>
+                <div class="card">
+                    <a href="model.html"><img src="img5.jpg" alt="model"></a>
+                    <div class="topic">
+                        <h3>Modelling</h3>
+                        <p>A portrait is not made in the camera but on either side of it.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <!-- Service Section -->
+        <section id="services" class="services">
+            <h2>Our Services</h2>
+            <div class="service-container">
+                <div class="service">
+                    <span class="material-symbols-outlined">
+                        photo_camera
+                    </span>
+                    <h3>Photography</h3>
+                    <p>We offer professional photography services for events, portraits, and more.</p>
+                </div>
+                <div class="service">
+                    <span class="material-symbols-outlined">
+                        video_camera_front
+                    </span>
+                    <h3>Videography</h3>
+                    <p>We offer professional videography services for events, weddings, and more.</p>
+                </div>
+                <div class="service">
+                    <span class="material-symbols-outlined">
+                        lens_blur
+                    </span>
+                    <h3>Photo Editing</h3>
+                    <p>We offer professional photo editing services to enhance your photos.</p>
+                </div>
+            </div>
+        </section>
+        <hr>
+        <!-- Contact Section -->
+        <div class="cheading" id="contact">
+            <h2>Contact</h2>
+        </div>
+
+        <section id="contact" class="contact-background">
+            <!-- <div class="contact-background"> -->
+            <h2>Get in Touch</h2>
+            <p>Want to collaborate or learn more about my photography services? Fill out the form below or send me
+                an email!</p>
+
+            <form>
+                <label for="name">Name:</label><br>
+                <input type="text" id="name" name="name" placeholder="Enter Name"><br><br>
+                <label for="email">Email:</label><br>
+                <input type="email" id="email" name="email" placeholder="Enter E-mail"><br><br>
+                <label for="message">Message:</label><br>
+                <textarea id="message" name="message" placeholder="Write Message...."></textarea><br><br>
+                <input type="submit" value="Send" id="send">
+            </form>
+            <!-- </div> -->
+        </section>
+        <!-- footer -->
+
+        <footer class="footer">
+            <div class="container">
+                <div class="row">
+                    <div class="col-md-6">
+                        <p>Copyright &copy; 2024 Photography Website. All rights reserved.</p>
+                    </div>
+                    <div class="col-md-6">
+                        <ul class="social-links">
+                            <a href="mailto:your_email@example.com"><i class="fa-solid fa-envelope"></i></a>
+                            <a href="https://www.instagram.com/your_instagram_username/"><i
+                                    class="fa-brands fa-square-instagram"></i></a>
+                            <a href="https://www.facebook.com/your_facebook_username/"><i
+                                    class="fa-brands fa-square-facebook"></i></a>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </footer>
+    </main>
+    </div>
+
+</body>
+
+</html>
