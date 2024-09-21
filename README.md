@@ -1,2 +1,2 @@
 # Photography-website
-I developed the photography website using html and css only
+I developeda responsive photography website using html and css only
