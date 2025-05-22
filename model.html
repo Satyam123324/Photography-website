@@ -12,7 +12,7 @@
 }
     body{
         display: flex;
-        height: 200vh;
+        height: 100vh;
         background-image: url('img6.jpg');
         background-size: cover;
         background-position: center;
@@ -38,6 +38,36 @@
 .container img:hover {
     transform: scale(1.1);
 }
+@media (max-width:1000px) {
+.container img{
+    width: 10rem;
+    height: auto;
+}
+}
+@media (max-width: 900px) {
+  .container img {
+    width: 45vw;
+    height: 30vw;
+    min-width: 140px;
+    min-height: 100px;
+  }
+}
+@media (max-width: 600px) {
+  body {
+    flex-direction: column;
+    height: auto;
+  }
+  .container {
+    gap: 6px;
+    padding: 8px;
+  }
+  .container img {
+    width: 90vw;
+    height: 40vw;
+    min-width: 90px;
+    min-height: 60px;
+  }
+}
 </style>
 </head>
 <body>
@@ -62,4 +92,4 @@
 </body>
 </html>
 
-   
+
