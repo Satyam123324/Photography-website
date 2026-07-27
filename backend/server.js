@@ -18,8 +18,7 @@ app.use("/api/portfolio", require("./routes/portfolioRoutes"));
 app.use("/api/bookings", require("./routes/bookingRoutes"));
 app.use("/api/reviews", require("./routes/reviewRoutes"));
 
-app.get("/", (req, res) => res.json({ message: "PhotoConnect API running ✓" }));
-
+app.get("/", (req, res) => res.json({ message: "PhotoConnect API v2 running ✓" }));
 app.use(notFound);
 app.use(errorHandler);
 

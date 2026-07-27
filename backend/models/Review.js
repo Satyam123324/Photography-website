@@ -6,7 +6,13 @@ const reviewSchema = new mongoose.Schema(
     customer: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
     photographer: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
     rating: { type: Number, required: true, min: 1, max: 5 },
-    comment: { type: String, maxlength: 500, default: "" },
+    comment: { type: String, maxlength: 1000, default: "" },
+    aspects: {
+      quality: { type: Number, min: 1, max: 5 },
+      communication: { type: Number, min: 1, max: 5 },
+      punctuality: { type: Number, min: 1, max: 5 },
+      value: { type: Number, min: 1, max: 5 },
+    },
   },
   { timestamps: true }
 );

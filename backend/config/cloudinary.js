@@ -1,5 +1,5 @@
 const cloudinary = require("cloudinary").v2;
-const { CloudinaryStorage } = require("multer-storage-cloudinary");
+const multer = require("multer");
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -7,22 +7,20 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-const portfolioStorage = new CloudinaryStorage({
-  cloudinary,
-  params: async (req, file) => ({
-    folder: `photoconnect/portfolios/${req.user._id}`,
-    allowed_formats: ["jpg", "jpeg", "png", "webp"],
-    transformation: [{ width: 1600, crop: "limit" }],
-  }),
-});
+// Use memory storage — no signature issues
+const upload = multer({ storage: multer.memoryStorage() });
 
-const profileStorage = new CloudinaryStorage({
-  cloudinary,
-  params: async (req, file) => ({
-    folder: `photoconnect/profiles/${req.user._id}`,
-    allowed_formats: ["jpg", "jpeg", "png", "webp"],
-    transformation: [{ width: 800, crop: "limit" }],
-  }),
-});
+const uploadToCloudinary = (buffer, folder, resourceType = "image") => {
+  return new Promise((resolve, reject) => {
+    const stream = cloudinary.uploader.upload_stream(
+      { folder, resource_type: resourceType },
+      (error, result) => {
+        if (error) reject(error);
+        else resolve(result);
+      }
+    );
+    stream.end(buffer);
+  });
+};
 
-module.exports = { cloudinary, portfolioStorage, profileStorage };
+module.exports = { cloudinary, upload, uploadToCloudinary };

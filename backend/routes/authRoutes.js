@@ -1,8 +1,15 @@
 const express = require("express");
-const router = express.Router();
-const { registerUser, loginUser, getMe } = require("../controllers/authController");
+const r = express.Router();
+const { upload } = require("../config/cloudinary");
+const { registerUser, loginUser, getMe, forgotPassword, verifyOTP, resetPassword, updateAvatar } = require("../controllers/authController");
 const { protect } = require("../middleware/authMiddleware");
-router.post("/register", registerUser);
-router.post("/login", loginUser);
-router.get("/me", protect, getMe);
-module.exports = router;
+
+r.post("/register", registerUser);
+r.post("/login", loginUser);
+r.get("/me", protect, getMe);
+r.post("/forgot-password", forgotPassword);
+r.post("/verify-otp", verifyOTP);
+r.post("/reset-password", resetPassword);
+r.post("/avatar", protect, upload.single("image"), updateAvatar);
+
+module.exports = r;

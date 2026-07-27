@@ -4,32 +4,16 @@ import api from '../api/axios'
 const AuthContext = createContext()
 
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(() => JSON.parse(localStorage.getItem('user') || 'null'))
+  const [user, setUser] = useState(() => JSON.parse(localStorage.getItem('pcUser') || 'null'))
 
-  const login = async (email, password) => {
-    const { data } = await api.post('/auth/login', { email, password })
-    setUser(data)
-    localStorage.setItem('user', JSON.stringify(data))
-    return data
-  }
+  const save = (data) => { setUser(data); localStorage.setItem('pcUser', JSON.stringify(data)) }
 
-  const register = async (name, email, password, phone, role) => {
-    const { data } = await api.post('/auth/register', { name, email, password, phone, role })
-    setUser(data)
-    localStorage.setItem('user', JSON.stringify(data))
-    return data
-  }
+  const login = async (email, password) => { const { data } = await api.post('/auth/login', { email, password }); save(data); return data }
+  const register = async (form) => { const { data } = await api.post('/auth/register', form); save(data); return data }
+  const logout = () => { setUser(null); localStorage.removeItem('pcUser') }
+  const updateUser = (updates) => { const updated = { ...user, ...updates }; save(updated) }
 
-  const logout = () => {
-    setUser(null)
-    localStorage.removeItem('user')
-  }
-
-  return (
-    <AuthContext.Provider value={{ user, login, register, logout }}>
-      {children}
-    </AuthContext.Provider>
-  )
+  return <AuthContext.Provider value={{ user, login, register, logout, updateUser }}>{children}</AuthContext.Provider>
 }
 
 export const useAuth = () => useContext(AuthContext)

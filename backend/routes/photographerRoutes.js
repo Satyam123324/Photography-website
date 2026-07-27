@@ -1,8 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const multer = require("multer");
-const { profileStorage } = require("../config/cloudinary");
-const upload = multer({ storage: profileStorage });
+const { upload } = require("../config/cloudinary");
 const { updateProfile, uploadCoverImage, getPhotographers, getPhotographerById, getMyProfile } = require("../controllers/photographerController");
 const { protect, authorize } = require("../middleware/authMiddleware");
 

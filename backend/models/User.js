@@ -7,23 +7,19 @@ const userSchema = new mongoose.Schema(
     email: { type: String, required: true, unique: true, lowercase: true },
     password: { type: String, required: true, minlength: 6 },
     phone: { type: String, default: "" },
-    role: {
-      type: String,
-      enum: ["customer", "photographer", "admin"],
-      default: "customer",
-    },
-    avatar: {
-      url: { type: String, default: "" },
-      publicId: { type: String, default: "" },
-    },
+    role: { type: String, enum: ["customer", "photographer", "admin"], default: "customer" },
+    avatar: { url: { type: String, default: "" }, publicId: { type: String, default: "" } },
+    isVerified: { type: Boolean, default: false },
+    // OTP for password reset
+    resetOTP: { type: String },
+    resetOTPExpiry: { type: Date },
   },
   { timestamps: true }
 );
 
 userSchema.pre("save", async function (next) {
   if (!this.isModified("password")) return next();
-  const salt = await bcrypt.genSalt(10);
-  this.password = await bcrypt.hash(this.password, salt);
+  this.password = await bcrypt.hash(this.password, 12);
   next();
 });
 
