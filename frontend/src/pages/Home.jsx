@@ -1,369 +1,199 @@
-import { useState, useEffect, useCallback } from 'react'
-import { Link } from 'react-router-dom'
+import { useState, useEffect } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
 import api from '../api/axios'
 import { useAuth } from '../context/AuthContext'
-import toast from 'react-hot-toast'
+import { CATEGORIES, FEATURED_CATEGORIES } from '../lib/categories'
+import PhotographerCard, { PhotographerCardSkeleton } from '../components/PhotographerCard'
+import { Container, SectionHeading, Button } from '../components/ui'
+import { Reveal, Stagger, StaggerItem } from '../components/motion'
+import AnimatedCamera from '../components/AnimatedCamera'
 
-const CATEGORIES = [
-  { key: 'all', label: 'All', icon: '✦' },
-  { key: 'wedding', label: 'Wedding', icon: '💍' },
-  { key: 'pre-wedding', label: 'Pre-Wedding', icon: '🌸' },
-  { key: 'post-wedding', label: 'Post-Wedding', icon: '🥂' },
-  { key: 'modeling', label: 'Modeling', icon: '👗' },
-  { key: 'wildlife', label: 'Wildlife', icon: '🦅' },
-  { key: 'event', label: 'Events', icon: '🎉' },
-  { key: 'portrait', label: 'Portrait', icon: '🎨' },
-  { key: 'fashion', label: 'Fashion', icon: '✨' },
-  { key: 'product', label: 'Product', icon: '📦' },
-  { key: 'travel', label: 'Travel', icon: '🌍' },
-  { key: 'newborn', label: 'Newborn', icon: '👶' },
-  { key: 'maternity', label: 'Maternity', icon: '🤱' },
+const CAT_MAP = Object.fromEntries(CATEGORIES.map((c) => [c.key, c]))
+
+const STEPS = [
+  { title: 'Discover', text: 'Browse photographers by specialty, city and style — every kind, all in one place.' },
+  { title: 'Book a date', text: 'Check real availability and request the slot that works for you.' },
+  { title: 'Get your shots', text: 'Meet, shoot, receive your gallery — then leave a review.' },
 ]
-
-function VideoCard({ post, onClick }) {
-  const [playing, setPlaying] = useState(false)
-  return (
-    <div className="masonry-item group relative cursor-pointer rounded-xl overflow-hidden bg-[#13131a]" onClick={onClick}>
-      {playing ? (
-        <video src={post.media.url} autoPlay muted loop className="w-full object-cover rounded-xl" />
-      ) : (
-        <>
-          {post.media.thumbnail
-            ? <img src={post.media.thumbnail} className="w-full object-cover group-hover:scale-105 transition duration-500" alt="" />
-            : <div className="w-full h-40 bg-gradient-to-br from-[#1e1e2e] to-[#13131a] flex items-center justify-center"><span className="text-4xl opacity-30">🎬</span></div>}
-          <div className="absolute inset-0 bg-[#0a0a0f]/40 flex items-center justify-center">
-            <div className="w-12 h-12 rounded-full bg-[#c8a96e] flex items-center justify-center shadow-xl group-hover:scale-110 transition duration-300">
-              <span className="text-[#0a0a0f] text-lg ml-1">▶</span>
-            </div>
-          </div>
-          <div className="absolute top-2 left-2"><span className="text-[10px] bg-[#0a0a0f]/80 text-[#c8a96e] px-2 py-0.5 rounded-full border border-[#c8a96e]/20">VIDEO</span></div>
-        </>
-      )}
-      <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-[#0a0a0f]/90 p-3 translate-y-full group-hover:translate-y-0 transition duration-300">
-        <p className="text-xs font-semibold text-[#e8e6e1]">{post.photographer?.name}</p>
-        <p className="text-[10px] text-[#c8a96e] capitalize">{post.category}</p>
-      </div>
-    </div>
-  )
-}
-
-function PhotoCard({ post, onClick }) {
-  const [loaded, setLoaded] = useState(false)
-  return (
-    <div className="masonry-item group relative cursor-pointer rounded-xl overflow-hidden bg-[#13131a]" onClick={onClick}>
-      {!loaded && <div className="w-full h-40 shimmer" />}
-      <img src={post.media.url} alt={post.caption}
-        onLoad={() => setLoaded(true)}
-        className={`w-full object-cover group-hover:scale-105 transition duration-500 ${loaded ? 'opacity-100' : 'opacity-0 absolute'}`} />
-      <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0f]/80 via-transparent opacity-0 group-hover:opacity-100 transition duration-300 p-3 flex flex-col justify-end">
-        <p className="text-xs font-semibold text-[#e8e6e1]">{post.photographer?.name}</p>
-        <p className="text-[10px] text-[#c8a96e] capitalize">{post.category}</p>
-        {post.caption && <p className="text-[10px] text-[#9a9890] truncate mt-0.5">{post.caption}</p>}
-        <div className="flex items-center gap-2 mt-1">
-          <span className="text-[10px] text-[#4a4a6a]">♥ {post.likes?.length || 0}</span>
-          <span className="text-[10px] text-[#4a4a6a]">👁 {post.views || 0}</span>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-function PhotographerCard({ p }) {
-  return (
-    <Link to={`/photographer/${p.user?._id}`}
-      className="card group hover:border-[#c8a96e]/30 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-[#c8a96e]/5 flex flex-col">
-      <div className="h-40 overflow-hidden relative">
-        {p.coverImage?.url
-          ? <img src={p.coverImage.url} className="w-full h-full object-cover group-hover:scale-110 transition duration-700" alt="" />
-          : <div className="w-full h-full bg-gradient-to-br from-[#1e1e2e] to-[#0a0a0f] flex items-center justify-center"><span className="text-5xl opacity-10">📷</span></div>}
-        <div className="absolute inset-0 bg-gradient-to-t from-[#13131a] via-transparent" />
-        <div className="absolute top-3 right-3 flex gap-1 flex-wrap justify-end">
-          {p.categories?.slice(0,2).map(c => (
-            <span key={c} className="text-[9px] bg-[#0a0a0f]/80 backdrop-blur text-[#c8a96e] px-2 py-0.5 rounded-full capitalize">{c}</span>
-          ))}
-        </div>
-      </div>
-      <div className="p-4 flex-1 flex flex-col">
-        <div className="flex items-start gap-3 -mt-6 mb-3">
-          <div className="w-11 h-11 rounded-xl bg-[#c8a96e]/15 border-2 border-[#13131a] flex items-center justify-center text-[#c8a96e] font-bold text-base overflow-hidden shrink-0 shadow-lg">
-            {p.user?.avatar?.url ? <img src={p.user.avatar.url} className="w-full h-full object-cover" alt="" /> : p.user?.name?.[0]?.toUpperCase()}
-          </div>
-          <div className="pt-5 flex-1 min-w-0">
-            <h3 className="font-semibold text-[#e8e6e1] truncate text-sm">{p.user?.name}</h3>
-            <p className="text-[11px] text-[#4a4a6a] truncate">
-              📍 {[p.location?.city, p.location?.state].filter(Boolean).join(', ') || 'India'}
-            </p>
-          </div>
-          <div className="pt-5 text-right shrink-0">
-            {p.averageRating > 0
-              ? <><div className="text-[#c8a96e] text-sm font-bold">★ {p.averageRating}</div><div className="text-[9px] text-[#4a4a6a]">{p.totalReviews} reviews</div></>
-              : <span className="text-[10px] bg-emerald-900/40 text-emerald-400 px-2 py-0.5 rounded-full">New</span>}
-          </div>
-        </div>
-        {p.tagline && <p className="text-xs text-[#c8a96e]/80 italic mb-2 line-clamp-1">"{p.tagline}"</p>}
-        {p.bio && <p className="text-xs text-[#9a9890] line-clamp-2 leading-relaxed flex-1">{p.bio}</p>}
-        <div className="mt-3 pt-3 border-t border-[#1e1e2e] flex items-center justify-between">
-          <div className="flex gap-3 text-[11px] text-[#4a4a6a]">
-            <span>{p.experienceYears > 0 ? `${p.experienceYears}yr exp` : 'New'}</span>
-            {p.totalBookings > 0 && <span>· {p.totalBookings} sessions</span>}
-          </div>
-          <span className="text-[11px] text-[#c8a96e] font-medium group-hover:underline">View →</span>
-        </div>
-      </div>
-    </Link>
-  )
-}
 
 export default function Home() {
   const { user } = useAuth()
-  const [activeTab, setActiveTab] = useState('photographers')
-  const [mediaFilter, setMediaFilter] = useState('all') // all, image, video
-  const [category, setCategory] = useState('all')
+  const navigate = useNavigate()
   const [search, setSearch] = useState('')
-  const [sortBy, setSortBy] = useState('rating')
-  const [feed, setFeed] = useState([])
-  const [photographers, setPhotographers] = useState([])
+  const [featured, setFeatured] = useState([])
   const [loading, setLoading] = useState(true)
-  const [lightbox, setLightbox] = useState(null)
-  const [page, setPage] = useState(1)
-  const [hasMore, setHasMore] = useState(true)
 
-  const fetchData = useCallback(async (reset = true) => {
-    setLoading(true)
-    try {
-      if (activeTab === 'feed') {
-        const params = new URLSearchParams({ limit: 20, page: reset ? 1 : page })
-        if (category !== 'all') params.set('category', category)
-        if (mediaFilter !== 'all') params.set('type', mediaFilter)
-        const { data } = await api.get(`/portfolio?${params}`)
-        setFeed(reset ? data : prev => [...prev, ...data])
-        setHasMore(data.length === 20)
-        if (!reset) setPage(p => p + 1)
-      } else {
-        const params = new URLSearchParams({ sortBy })
-        if (category !== 'all') params.set('category', category)
-        if (search) params.set('search', search)
-        const { data } = await api.get(`/photographers?${params}`)
-        setPhotographers(data)
-      }
-    } catch (e) { console.error(e) }
-    setLoading(false)
-  }, [activeTab, category, mediaFilter, sortBy, search])
-
-  useEffect(() => { setPage(1); fetchData(true) }, [activeTab, category, mediaFilter, sortBy])
-  useEffect(() => {
-    const t = setTimeout(() => { setPage(1); fetchData(true) }, 400)
-    return () => clearTimeout(t)
-  }, [search])
-
-  const handleLike = async (post, e) => {
-    e.stopPropagation()
-    if (!user) return toast.error('Login to like photos')
-    try {
-      const { data } = await api.post(`/portfolio/${post._id}/like`)
-      setFeed(prev => prev.map(p => p._id === post._id ? { ...p, likes: Array(data.likes).fill(null) } : p))
-    } catch { toast.error('Failed to like') }
-  }
-
-  const heroWords = ['Wedding', 'Wildlife', 'Fashion', 'Portrait', 'Travel']
+  const heroWords = ['weddings', 'portraits', 'wildlife', 'fashion', 'journeys']
   const [wordIdx, setWordIdx] = useState(0)
   useEffect(() => {
-    const t = setInterval(() => setWordIdx(i => (i + 1) % heroWords.length), 2000)
+    const t = setInterval(() => setWordIdx((i) => (i + 1) % heroWords.length), 2200)
     return () => clearInterval(t)
   }, [])
 
+  useEffect(() => {
+    (async () => {
+      try {
+        const { data } = await api.get('/photographers?sortBy=rating')
+        setFeatured(data.slice(0, 6))
+      } catch (e) { console.error(e) }
+      setLoading(false)
+    })()
+  }, [])
+
+  const submitSearch = (e) => {
+    e.preventDefault()
+    navigate(search ? `/explore?q=${encodeURIComponent(search)}` : '/explore')
+  }
+
   return (
     <div className="min-h-screen">
-      {/* HERO */}
-      <div className="relative min-h-[90vh] flex items-center justify-center overflow-hidden pt-16">
-        {/* Background grid */}
-        <div className="absolute inset-0" style={{backgroundImage:'radial-gradient(circle at 1px 1px, #1e1e2e 1px, transparent 0)', backgroundSize:'40px 40px', opacity:0.4}} />
-        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-[#c8a96e]/5 rounded-full blur-3xl" />
-        <div className="absolute bottom-1/4 right-1/4 w-64 h-64 bg-purple-900/10 rounded-full blur-3xl" />
+      {/* HERO — editorial, asymmetric */}
+      <section className="relative overflow-hidden pt-28 pb-16 sm:pt-36">
+        <div className="absolute -top-24 -right-32 w-[42rem] h-[42rem] bg-clay/10 rounded-full blur-3xl -z-10" />
+        <div className="absolute inset-0 -z-10 opacity-[0.04]"
+          style={{ backgroundImage: 'radial-gradient(circle at 1px 1px, #FFF 1px, transparent 0)', backgroundSize: '38px 38px' }} />
 
-        <div className="relative max-w-5xl mx-auto px-4 sm:px-6 text-center">
-          <div className="inline-flex items-center gap-2 bg-[#c8a96e]/10 border border-[#c8a96e]/20 text-[#c8a96e] text-xs font-semibold px-4 py-2 rounded-full mb-8 animate-fade-in">
-            <span className="w-1.5 h-1.5 bg-[#c8a96e] rounded-full animate-pulse" />
-            India's Premier Photography Marketplace
-          </div>
-          <h1 className="font-serif text-5xl sm:text-6xl md:text-7xl font-bold leading-tight text-[#e8e6e1] mb-6 animate-fade-up">
-            Capture every<br />
-            <span className="gradient-text transition-all duration-500">{heroWords[wordIdx]}</span>{' '}
-            <span className="text-[#e8e6e1]">moment.</span>
-          </h1>
-          <p className="text-[#9a9890] text-base sm:text-lg md:text-xl mb-10 max-w-2xl mx-auto leading-relaxed animate-fade-up">
-            Connect with India's finest photographers and videographers. From intimate portraits to grand celebrations.
-          </p>
+        {/* Animated camera */}
+        <div className="absolute top-20 right-4 xl:right-16 w-[280px] xl:w-[340px] hidden lg:block z-0 pointer-events-none">
+          <div className="absolute inset-0 bg-clay/15 rounded-full blur-3xl scale-90" />
+          <AnimatedCamera className="relative w-full drop-shadow-[0_20px_40px_rgba(0,0,0,0.55)]" />
+        </div>
 
-          {/* Search Bar */}
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 bg-[#13131a] border border-[#2a2a3a] rounded-2xl p-2 max-w-2xl mx-auto focus-within:border-[#c8a96e]/40 transition-all duration-300 shadow-2xl shadow-black/50 mb-12 animate-fade-up">
-            <div className="flex items-center gap-2 flex-1 px-3">
-              <svg className="w-4 h-4 text-[#4a4a6a] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-              </svg>
-              <input value={search} onChange={e => setSearch(e.target.value)}
-                placeholder="Search photographers, city, speciality..."
-                className="flex-1 bg-transparent text-sm text-[#e8e6e1] placeholder-[#4a4a6a] outline-none py-2" />
-              {search && <button onClick={() => setSearch('')} className="text-[#4a4a6a] hover:text-[#9a9890] text-xl transition">×</button>}
-            </div>
-            <button onClick={() => { setActiveTab('photographers'); fetchData(true) }}
-              className="btn-primary rounded-xl px-6 py-3 text-sm whitespace-nowrap">
-              Search
-            </button>
-          </div>
+        <Container className="relative z-10">
+          <Reveal delay={0} y={12} once className="flex items-center gap-3 text-ink-muted text-xs font-semibold tracking-[0.28em] uppercase mb-8">
+            <span className="text-clay">/ 01</span>
+            <span className="h-px flex-1 bg-line max-w-[120px]" />
+            A marketplace for every kind of photographer
+          </Reveal>
 
-          {/* Stats */}
-          <div className="flex items-center justify-center gap-6 sm:gap-12 animate-fade-up">
-            {[['500+','Photographers'],['10K+','Bookings Done'],['15','Categories'],['4.9★','Avg Rating']].map(([num, label]) => (
-              <div key={label} className="text-center">
-                <div className="font-serif text-xl sm:text-2xl font-bold text-[#c8a96e]">{num}</div>
-                <div className="text-[10px] text-[#4a4a6a] mt-0.5 hidden sm:block">{label}</div>
+          <Reveal as="h1" delay={0.08} once className="headline text-[3.25rem] sm:text-8xl font-bold text-ink max-w-5xl">
+            Capture your
+            <br className="hidden sm:block" />{' '}
+            <span key={wordIdx} className="text-clay accent-underline word-swap">{heroWords[wordIdx]}</span>
+            <span className="text-ink">.</span>
+          </Reveal>
+
+          <Reveal delay={0.2} once className="mt-8 grid lg:grid-cols-[1.1fr_0.9fr] gap-8 items-end">
+            <p className="text-ink-muted text-lg leading-relaxed max-w-xl">
+              Discover talented photographers, explore their work, and book your session — all in one place, built for the way you actually shoot.
+            </p>
+
+            {/* Search */}
+            <form onSubmit={submitSearch}
+              className="flex items-stretch gap-2 bg-surface border border-line-strong rounded-2xl p-2 shadow-card focus-within:border-clay/60 focus-within:shadow-flare transition">
+              <div className="flex items-center gap-2 flex-1 px-3">
+                <svg className="w-5 h-5 text-ink-muted shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search name, city, specialty…"
+                  className="flex-1 bg-transparent text-sm text-ink placeholder-ink-faint outline-none py-2.5" />
               </div>
+              <Button type="submit" className="rounded-xl px-6">Search</Button>
+            </form>
+          </Reveal>
+        </Container>
+
+        {/* Marquee of specialties */}
+        <div className="mt-14 border-y border-line py-4 overflow-hidden mask-fade-x">
+          <div className="flex gap-8 w-max animate-marquee">
+            {[...CATEGORIES, ...CATEGORIES].map((c, i) => (
+              <span key={i} className="flex items-center gap-3 text-2xl sm:text-3xl font-serif text-ink-faint whitespace-nowrap">
+                <span className="text-base">{c.icon}</span>{c.label}
+                <span className="text-clay">✦</span>
+              </span>
             ))}
           </div>
         </div>
+      </section>
 
-        {/* Scroll indicator */}
-        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1 text-[#4a4a6a] animate-bounce">
-          <span className="text-[10px] uppercase tracking-widest">Scroll</span>
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
-        </div>
-      </div>
-
-      {/* MAIN CONTENT */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 pb-20">
-        {/* Tab switcher */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
-          <div className="flex bg-[#13131a] border border-[#1e1e2e] rounded-xl p-1 gap-1">
-            {[['photographers','👤 Photographers'],['feed','🖼 Media Feed']].map(([key, label]) => (
-              <button key={key} onClick={() => setActiveTab(key)}
-                className={`px-4 sm:px-6 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${activeTab === key ? 'bg-[#c8a96e] text-[#0a0a0f] shadow-lg shadow-[#c8a96e]/20' : 'text-[#9a9890] hover:text-[#e8e6e1]'}`}>
-                {label}
-              </button>
-            ))}
+      {/* CATEGORY TILES — numbered editorial grid */}
+      <section className="py-16">
+        <Container>
+          <div className="flex items-end justify-between gap-4 mb-10">
+            <SectionHeading eyebrow="/ 02  Browse by specialty" title="What are you shooting?" />
+            <Link to="/explore" className="text-clay font-medium hover:underline shrink-0 hidden sm:block">All specialties →</Link>
           </div>
+          <Stagger className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3" gap={0.06}>
+            {FEATURED_CATEGORIES.map((key, i) => {
+              const c = CAT_MAP[key]
+              return (
+                <StaggerItem key={key}>
+                  <Link to={`/explore?category=${key}`}
+                    className="card group hover:shadow-lift hover:-translate-y-1 hover:border-clay/40 transition-all duration-300 p-5 flex flex-col gap-6 h-full">
+                    <span className="text-xs font-semibold text-ink-faint">0{i + 1}</span>
+                    <span className="text-3xl group-hover:scale-110 transition-transform origin-left">{c.icon}</span>
+                    <span className="text-sm font-semibold text-ink group-hover:text-clay transition-colors">{c.label}</span>
+                  </Link>
+                </StaggerItem>
+              )
+            })}
+          </Stagger>
+        </Container>
+      </section>
 
-          {/* Right controls */}
-          <div className="flex items-center gap-2 flex-wrap">
-            {activeTab === 'feed' && (
-              <div className="flex bg-[#13131a] border border-[#1e1e2e] rounded-lg p-0.5 gap-0.5">
-                {[['all','All'],['image','Photos'],['video','Videos']].map(([key, label]) => (
-                  <button key={key} onClick={() => setMediaFilter(key)}
-                    className={`px-3 py-1.5 rounded-md text-xs font-medium transition ${mediaFilter === key ? 'bg-[#1e1e2e] text-[#e8e6e1]' : 'text-[#4a4a6a] hover:text-[#9a9890]'}`}>
-                    {label}
-                  </button>
-                ))}
-              </div>
-            )}
-            {activeTab === 'photographers' && (
-              <select value={sortBy} onChange={e => setSortBy(e.target.value)}
-                className="bg-[#13131a] border border-[#1e1e2e] text-[#9a9890] text-xs rounded-lg px-3 py-2 outline-none focus:border-[#c8a96e]/40 cursor-pointer">
-                <option value="rating">Top Rated</option>
-                <option value="experience">Most Experienced</option>
-                <option value="bookings">Most Booked</option>
-                <option value="newest">Newest</option>
-              </select>
-            )}
+      {/* FEATURED PHOTOGRAPHERS */}
+      <section className="py-16 bg-cream-200 border-y border-line">
+        <Container>
+          <div className="flex items-end justify-between gap-4 mb-10">
+            <SectionHeading eyebrow="/ 03  Top rated" title="Featured photographers" />
+            <Link to="/explore" className="text-clay font-medium hover:underline shrink-0">View all →</Link>
           </div>
-        </div>
-
-        {/* Category Pills */}
-        <div className="flex gap-2 flex-wrap mb-8 overflow-x-auto pb-1">
-          {CATEGORIES.map(({ key, label, icon }) => (
-            <button key={key} onClick={() => setCategory(key)}
-              className={`flex items-center gap-1.5 px-3 sm:px-4 py-2 rounded-full text-xs font-medium transition-all duration-200 whitespace-nowrap ${category === key ? 'bg-[#c8a96e] text-[#0a0a0f] shadow-lg shadow-[#c8a96e]/20' : 'bg-[#13131a] border border-[#1e1e2e] text-[#9a9890] hover:border-[#c8a96e]/30 hover:text-[#e8e6e1]'}`}>
-              <span>{icon}</span>{label}
-            </button>
-          ))}
-        </div>
-
-        {/* Loading skeletons */}
-        {loading && (
-          activeTab === 'photographers'
-            ? <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-                {[...Array(6)].map((_,i) => <div key={i} className="card"><div className="h-40 shimmer" /><div className="p-4 space-y-3"><div className="h-4 shimmer rounded w-2/3" /><div className="h-3 shimmer rounded w-1/2" /></div></div>)}
-              </div>
-            : <div className="masonry">{[...Array(8)].map((_,i) => <div key={i} className={`masonry-item shimmer rounded-xl ${i % 3 === 0 ? 'h-64' : 'h-40'}`} />)}</div>
-        )}
-
-        {/* Photographers Grid */}
-        {!loading && activeTab === 'photographers' && (
-          <>
-            {photographers.length === 0
-              ? <div className="text-center py-24"><p className="text-5xl mb-4">📷</p><p className="text-[#9a9890] mb-2">No photographers found</p><p className="text-[#4a4a6a] text-sm">Try a different search or category</p></div>
-              : <>
-                  <p className="text-xs text-[#4a4a6a] mb-4">{photographers.length} photographers found</p>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-                    {photographers.map(p => <PhotographerCard key={p._id} p={p} />)}
-                  </div>
-                </>}
-          </>
-        )}
-
-        {/* Media Feed */}
-        {!loading && activeTab === 'feed' && (
-          <>
-            {feed.length === 0
-              ? <div className="text-center py-24"><p className="text-5xl mb-4">🖼</p><p className="text-[#9a9890]">No media yet in this category</p></div>
-              : <>
-                  <div className="masonry">
-                    {feed.map(post => (
-                      post.media?.type === 'video'
-                        ? <VideoCard key={post._id} post={post} onClick={() => setLightbox(post)} />
-                        : <PhotoCard key={post._id} post={post} onClick={() => setLightbox(post)} />
-                    ))}
-                  </div>
-                  {hasMore && (
-                    <div className="text-center mt-10">
-                      <button onClick={() => fetchData(false)} className="btn-ghost btn px-8 py-3">Load More</button>
-                    </div>
-                  )}
-                </>}
-          </>
-        )}
-      </div>
-
-      {/* LIGHTBOX */}
-      {lightbox && (
-        <div className="fixed inset-0 bg-[#0a0a0f]/98 backdrop-blur-xl z-50 flex items-center justify-center p-4 animate-fade-in"
-          onClick={() => setLightbox(null)}>
-          <button className="absolute top-4 right-4 w-10 h-10 rounded-xl bg-[#1e1e2e] text-[#9a9890] hover:text-[#e8e6e1] transition flex items-center justify-center text-lg z-10">✕</button>
-          <div className="max-w-5xl w-full flex flex-col md:flex-row gap-4 max-h-[90vh]" onClick={e => e.stopPropagation()}>
-            <div className="flex-1 rounded-2xl overflow-hidden flex items-center justify-center bg-[#0a0a0f]">
-              {lightbox.media?.type === 'video'
-                ? <video src={lightbox.media.url} controls autoPlay className="max-w-full max-h-[80vh] rounded-2xl" />
-                : <img src={lightbox.media?.url} alt={lightbox.caption} className="max-w-full max-h-[80vh] object-contain rounded-2xl" />}
+          {loading ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {[...Array(3)].map((_, i) => <PhotographerCardSkeleton key={i} />)}
             </div>
-            <div className="md:w-64 space-y-3">
-              <div className="glass-dark p-4 space-y-3">
-                <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-lg bg-[#c8a96e]/15 flex items-center justify-center text-[#c8a96e] font-bold text-sm">
-                    {lightbox.photographer?.name?.[0]}
-                  </div>
-                  <div>
-                    <p className="text-sm font-semibold text-[#e8e6e1]">{lightbox.photographer?.name}</p>
-                    <span className="tag text-[10px]">{lightbox.category}</span>
-                  </div>
+          ) : featured.length === 0 ? (
+            <div className="text-center py-12 text-ink-muted">
+              <p className="text-4xl mb-3">📷</p>
+              <p>No photographers yet — be the first to join.</p>
+              <Link to="/register" className="btn-primary mt-5 inline-flex">Join as photographer</Link>
+            </div>
+          ) : (
+            <Stagger className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {featured.map((p) => <StaggerItem key={p._id} className="h-full"><PhotographerCard p={p} /></StaggerItem>)}
+            </Stagger>
+          )}
+        </Container>
+      </section>
+
+      {/* HOW IT WORKS — oversized numerals */}
+      <section className="py-16">
+        <Container>
+          <SectionHeading eyebrow="/ 04  How it works" title="Book in three steps" />
+          <div className="grid md:grid-cols-3 gap-6 mt-10">
+            {STEPS.map((s, i) => (
+              <Reveal key={s.title} delay={i * 0.12} className="relative pt-8">
+                <span className="headline text-7xl font-bold text-line-strong absolute -top-2 left-0">{i + 1}</span>
+                <div className="relative pl-2">
+                  <h3 className="text-xl font-semibold text-ink mt-6">{s.title}</h3>
+                  <p className="text-ink-muted mt-2 leading-relaxed">{s.text}</p>
                 </div>
-                {lightbox.caption && <p className="text-sm text-[#9a9890] leading-relaxed">{lightbox.caption}</p>}
-                {lightbox.tags?.length > 0 && (
-                  <div className="flex flex-wrap gap-1">
-                    {lightbox.tags.map(t => <span key={t} className="text-[10px] text-[#4a4a6a] bg-[#1e1e2e] px-2 py-0.5 rounded-full">#{t}</span>)}
-                  </div>
+                <span className="block h-px bg-line mt-6" />
+              </Reveal>
+            ))}
+          </div>
+        </Container>
+      </section>
+
+      {/* CTA — crisp white invert card */}
+      <section className="pb-20">
+        <Container>
+          <Reveal className="card-invert px-8 py-14 sm:px-14 relative overflow-hidden">
+            <div className="absolute -bottom-20 -right-10 w-72 h-72 bg-clay/20 rounded-full blur-3xl" />
+            <div className="relative max-w-2xl">
+              <p className="section-label mb-4">/ Join the roster</p>
+              <h2 className="headline text-4xl sm:text-5xl font-bold text-cream">Are you a photographer?</h2>
+              <p className="text-cream/70 mt-4 text-lg">Create your profile, showcase your work, set your availability, and start taking bookings.</p>
+              <div className="mt-8 flex flex-col sm:flex-row gap-3">
+                {user?.role === 'photographer' ? (
+                  <Link to="/dashboard/photographer" className="btn bg-clay text-white hover:bg-clay-dark px-8 py-3 shadow-clay">Go to dashboard</Link>
+                ) : (
+                  <Link to="/register" className="btn bg-clay text-white hover:bg-clay-dark px-8 py-3 shadow-clay">Join free</Link>
                 )}
-                <div className="flex gap-3 text-xs text-[#4a4a6a]">
-                  <span>♥ {lightbox.likes?.length || 0} likes</span>
-                  <span>👁 {lightbox.views || 0} views</span>
-                </div>
+                <Link to="/explore" className="btn border border-cream/25 text-cream hover:bg-cream/5 px-8 py-3">Browse photographers</Link>
               </div>
-              <Link to={`/photographer/${lightbox.photographer?._id}`}
-                onClick={() => setLightbox(null)}
-                className="btn-primary btn w-full py-3 text-sm">View Photographer</Link>
-              <button onClick={() => setLightbox(null)} className="btn-ghost btn w-full py-2.5 text-sm">Close</button>
             </div>
-          </div>
-        </div>
-      )}
+          </Reveal>
+        </Container>
+      </section>
     </div>
   )
 }

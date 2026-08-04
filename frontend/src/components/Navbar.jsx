@@ -1,6 +1,13 @@
 import { useState, useEffect } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import Avatar from './ui/Avatar'
+
+const NAV_LINKS = [
+  { to: '/explore', label: 'Explore' },
+  { to: '/explore?type=photographers', label: 'Photographers' },
+  { to: '/how-it-works', label: 'How it works' },
+]
 
 export default function Navbar() {
   const { user, logout } = useAuth()
@@ -11,71 +18,72 @@ export default function Navbar() {
   const [dropdownOpen, setDropdownOpen] = useState(false)
 
   useEffect(() => {
-    const fn = () => setScrolled(window.scrollY > 30)
+    const fn = () => setScrolled(window.scrollY > 20)
+    fn()
     window.addEventListener('scroll', fn)
     return () => window.removeEventListener('scroll', fn)
   }, [])
 
-  useEffect(() => { setMobileOpen(false) }, [location.pathname])
+  useEffect(() => { setMobileOpen(false); setDropdownOpen(false) }, [location.pathname])
 
   const handleLogout = () => { logout(); navigate('/'); setDropdownOpen(false) }
-
-  const isActive = (path) => location.pathname === path
+  const dashPath = user?.role === 'photographer' ? '/dashboard/photographer' : '/dashboard/customer'
+  const isActive = (path) => location.pathname === path.split('?')[0]
 
   return (
-    <nav className={`fixed top-0 inset-x-0 z-50 transition-all duration-500 ${scrolled ? 'bg-[#0a0a0f]/95 backdrop-blur-xl border-b border-[#1e1e2e] shadow-xl shadow-black/50' : 'bg-transparent'}`}>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
+    <nav className={`fixed top-0 inset-x-0 z-50 transition-all duration-300 ${scrolled ? 'bg-cream/85 backdrop-blur-xl border-b border-line shadow-soft' : 'bg-transparent'}`}>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
         {/* Logo */}
         <Link to="/" className="flex items-center gap-2.5 shrink-0">
-          <div className="w-9 h-9 rounded-xl bg-[#c8a96e] flex items-center justify-center font-bold text-[#0a0a0f] text-base shadow-lg shadow-[#c8a96e]/30">PC</div>
-          <span className="font-serif text-lg font-bold text-[#e8e6e1] hidden sm:block">PhotoConnect</span>
+          <div className="w-9 h-9 rounded-xl bg-clay flex items-center justify-center font-bold text-white text-base shadow-clay">PC</div>
+          <span className="font-serif text-lg font-bold text-ink hidden sm:block">PhotoConnect</span>
         </Link>
 
         {/* Desktop links */}
-        <div className="hidden md:flex items-center gap-6 flex-1 justify-center">
-          <Link to="/" className={`text-sm transition-colors ${isActive('/') ? 'text-[#c8a96e]' : 'text-[#9a9890] hover:text-[#e8e6e1]'}`}>Explore</Link>
-          <Link to="/?tab=photographers" className="text-sm text-[#9a9890] hover:text-[#e8e6e1] transition-colors">Photographers</Link>
-          <Link to="/?tab=feed" className="text-sm text-[#9a9890] hover:text-[#e8e6e1] transition-colors">Feed</Link>
+        <div className="hidden md:flex items-center gap-1 flex-1 justify-center">
+          {NAV_LINKS.map(({ to, label }) => (
+            <Link key={label} to={to}
+              className={`text-sm px-3.5 py-2 rounded-full transition-colors font-medium ${isActive(to) ? 'text-clay-dark bg-clay-soft' : 'text-ink-muted hover:text-ink hover:bg-cream-200'}`}>
+              {label}
+            </Link>
+          ))}
         </div>
 
         {/* Auth actions */}
         <div className="hidden md:flex items-center gap-3 shrink-0">
           {!user ? (
             <>
-              <Link to="/login" className="text-sm text-[#9a9890] hover:text-[#e8e6e1] transition-colors font-medium">Sign In</Link>
-              <Link to="/register" className="btn-primary btn-sm">Join Free</Link>
+              <Link to="/login" className="text-sm text-ink-muted hover:text-ink transition-colors font-medium">Sign in</Link>
+              <Link to="/register" className="btn-primary btn-sm">Join free</Link>
             </>
           ) : (
             <div className="relative">
-              <button onClick={() => setDropdownOpen(!dropdownOpen)}
-                className="flex items-center gap-2.5 p-1.5 rounded-xl hover:bg-[#1e1e2e] transition group">
-                <div className="w-8 h-8 rounded-lg bg-[#c8a96e]/15 border border-[#c8a96e]/30 flex items-center justify-center text-[#c8a96e] font-bold text-sm overflow-hidden">
-                  {user.avatar?.url ? <img src={user.avatar.url} className="w-full h-full object-cover" alt="" /> : user.name[0].toUpperCase()}
-                </div>
+              <button onClick={() => setDropdownOpen((v) => !v)}
+                className="flex items-center gap-2.5 p-1.5 pr-2 rounded-full hover:bg-cream-200 transition">
+                <Avatar src={user.avatar?.url} name={user.name} size="sm" />
                 <div className="text-left">
-                  <p className="text-sm font-medium text-[#e8e6e1] leading-none">{user.name.split(' ')[0]}</p>
-                  <p className="text-[10px] text-[#4a4a6a] capitalize mt-0.5">{user.role}</p>
+                  <p className="text-sm font-medium text-ink leading-none">{user.name.split(' ')[0]}</p>
+                  <p className="text-[10px] text-ink-faint capitalize mt-0.5">{user.role}</p>
                 </div>
-                <svg className={`w-4 h-4 text-[#4a4a6a] transition-transform ${dropdownOpen ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+                <svg className={`w-4 h-4 text-ink-faint transition-transform ${dropdownOpen ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
               </button>
 
               {dropdownOpen && (
-                <div className="absolute right-0 top-full mt-2 w-52 glass-dark rounded-xl shadow-2xl shadow-black/50 py-1 border border-[#2a2a3a] animate-fade-in">
-                  <Link to={user.role === 'photographer' ? '/dashboard/photographer' : '/dashboard/customer'}
-                    onClick={() => setDropdownOpen(false)}
-                    className="flex items-center gap-3 px-4 py-3 text-sm text-[#9a9890] hover:text-[#e8e6e1] hover:bg-[#1e1e2e] transition">
+                <div className="absolute right-0 top-full mt-2 w-52 bg-surface rounded-2xl shadow-lift py-1.5 border border-line animate-scale-in">
+                  <Link to={dashPath} onClick={() => setDropdownOpen(false)}
+                    className="flex items-center gap-3 px-4 py-2.5 text-sm text-ink-muted hover:text-ink hover:bg-cream-200 transition">
                     <span>📊</span> Dashboard
                   </Link>
                   {user.role === 'photographer' && (
                     <Link to="/dashboard/photographer?tab=upload" onClick={() => setDropdownOpen(false)}
-                      className="flex items-center gap-3 px-4 py-3 text-sm text-[#9a9890] hover:text-[#e8e6e1] hover:bg-[#1e1e2e] transition">
-                      <span>📤</span> Upload Media
+                      className="flex items-center gap-3 px-4 py-2.5 text-sm text-ink-muted hover:text-ink hover:bg-cream-200 transition">
+                      <span>📤</span> Upload media
                     </Link>
                   )}
-                  <div className="border-t border-[#1e1e2e] mt-1 pt-1">
+                  <div className="border-t border-line mt-1 pt-1">
                     <button onClick={handleLogout}
-                      className="w-full flex items-center gap-3 px-4 py-3 text-sm text-red-400 hover:bg-red-900/20 transition">
-                      <span>🚪</span> Sign Out
+                      className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-rose hover:bg-rose-soft transition">
+                      <span>🚪</span> Sign out
                     </button>
                   </div>
                 </div>
@@ -85,41 +93,35 @@ export default function Navbar() {
         </div>
 
         {/* Mobile menu button */}
-        <button onClick={() => setMobileOpen(!mobileOpen)} className="md:hidden w-9 h-9 flex flex-col items-center justify-center gap-1.5 rounded-lg hover:bg-[#1e1e2e] transition">
-          <span className={`w-5 h-0.5 bg-[#9a9890] transition-all duration-300 ${mobileOpen ? 'rotate-45 translate-y-2' : ''}`} />
-          <span className={`w-5 h-0.5 bg-[#9a9890] transition-all duration-300 ${mobileOpen ? 'opacity-0 scale-x-0' : ''}`} />
-          <span className={`w-5 h-0.5 bg-[#9a9890] transition-all duration-300 ${mobileOpen ? '-rotate-45 -translate-y-2' : ''}`} />
+        <button onClick={() => setMobileOpen((v) => !v)} className="md:hidden w-9 h-9 flex flex-col items-center justify-center gap-1.5 rounded-lg hover:bg-cream-200 transition">
+          <span className={`w-5 h-0.5 bg-ink transition-all duration-300 ${mobileOpen ? 'rotate-45 translate-y-2' : ''}`} />
+          <span className={`w-5 h-0.5 bg-ink transition-all duration-300 ${mobileOpen ? 'opacity-0 scale-x-0' : ''}`} />
+          <span className={`w-5 h-0.5 bg-ink transition-all duration-300 ${mobileOpen ? '-rotate-45 -translate-y-2' : ''}`} />
         </button>
       </div>
 
       {/* Mobile menu */}
       <div className={`md:hidden transition-all duration-300 overflow-hidden ${mobileOpen ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'}`}>
-        <div className="bg-[#0a0a0f]/98 backdrop-blur-xl border-t border-[#1e1e2e] px-4 py-4 space-y-1">
-          {[['/', '🏠 Explore'],['/?tab=photographers','👤 Photographers'],['/?tab=feed','🖼 Photo Feed']].map(([to, label]) => (
-            <Link key={to} to={to} className="flex items-center gap-3 px-3 py-3 rounded-xl text-sm text-[#9a9890] hover:text-[#e8e6e1] hover:bg-[#1e1e2e] transition">{label}</Link>
+        <div className="bg-cream/95 backdrop-blur-xl border-t border-line px-4 py-4 space-y-1">
+          {NAV_LINKS.map(({ to, label }) => (
+            <Link key={label} to={to} className="flex items-center gap-3 px-3 py-3 rounded-xl text-sm text-ink-muted hover:text-ink hover:bg-cream-200 transition">{label}</Link>
           ))}
-          <div className="border-t border-[#1e1e2e] pt-3 mt-3">
+          <div className="border-t border-line pt-3 mt-3">
             {!user ? (
               <div className="flex flex-col gap-2">
-                <Link to="/login" className="btn-ghost btn w-full justify-center py-2.5 text-sm">Sign In</Link>
-                <Link to="/register" className="btn-primary btn w-full justify-center py-2.5 text-sm">Join Free</Link>
+                <Link to="/login" className="btn-ghost w-full justify-center py-2.5 text-sm">Sign in</Link>
+                <Link to="/register" className="btn-primary w-full justify-center py-2.5 text-sm">Join free</Link>
               </div>
             ) : (
               <div className="space-y-1">
-                <Link to={user.role === 'photographer' ? '/dashboard/photographer' : '/dashboard/customer'}
-                  className="flex items-center gap-3 px-3 py-3 rounded-xl text-sm text-[#9a9890] hover:text-[#e8e6e1] hover:bg-[#1e1e2e] transition">
-                  📊 Dashboard
-                </Link>
-                <button onClick={handleLogout} className="w-full flex items-center gap-3 px-3 py-3 rounded-xl text-sm text-red-400 hover:bg-red-900/20 transition">
-                  🚪 Sign Out
-                </button>
+                <Link to={dashPath} className="flex items-center gap-3 px-3 py-3 rounded-xl text-sm text-ink-muted hover:text-ink hover:bg-cream-200 transition">📊 Dashboard</Link>
+                <button onClick={handleLogout} className="w-full flex items-center gap-3 px-3 py-3 rounded-xl text-sm text-rose hover:bg-rose-soft transition">🚪 Sign out</button>
               </div>
             )}
           </div>
         </div>
       </div>
 
-      {/* Backdrop */}
       {dropdownOpen && <div className="fixed inset-0 z-[-1]" onClick={() => setDropdownOpen(false)} />}
     </nav>
   )
