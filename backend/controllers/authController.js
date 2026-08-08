@@ -83,8 +83,14 @@ const resetPassword = asyncHandler(async (req, res) => {
 // UPDATE profile picture
 const updateAvatar = asyncHandler(async (req, res) => {
   if (!req.file) { res.status(400); throw new Error("No image uploaded"); }
+  const { uploadToCloudinary } = require("../config/cloudinary");
+  const result = await uploadToCloudinary(
+    req.file.buffer,
+    `photoconnect/avatars/${req.user._id}`,
+    "image"
+  );
   const user = await User.findById(req.user._id);
-  user.avatar = { url: req.file.path, publicId: req.file.filename };
+  user.avatar = { url: result.secure_url, publicId: result.public_id };
   await user.save({ validateBeforeSave: false });
   res.json({ avatar: user.avatar });
 });

@@ -7,6 +7,9 @@ import PhotographerCard, { PhotographerCardSkeleton } from '../components/Photog
 import { Container, SectionHeading, Button } from '../components/ui'
 import { Reveal, Stagger, StaggerItem } from '../components/motion'
 import AnimatedCamera from '../components/AnimatedCamera'
+import CameraScrollShow from '../components/CameraScrollShow'
+import LensZoom3D from '../components/LensZoom3D'
+import Tilt from '../components/Tilt'
 
 const CAT_MAP = Object.fromEntries(CATEGORIES.map((c) => [c.key, c]))
 
@@ -66,7 +69,7 @@ export default function Home() {
             A marketplace for every kind of photographer
           </Reveal>
 
-          <Reveal as="h1" delay={0.08} once className="headline text-[3.25rem] sm:text-8xl font-bold text-ink max-w-5xl">
+          <Reveal as="h1" delay={0.08} once className="headline text-[2.5rem] sm:text-6xl lg:text-7xl xl:text-8xl font-bold text-ink max-w-5xl break-words">
             Capture your
             <br className="hidden sm:block" />{' '}
             <span key={wordIdx} className="text-clay accent-underline word-swap">{heroWords[wordIdx]}</span>
@@ -115,13 +118,17 @@ export default function Home() {
             {FEATURED_CATEGORIES.map((key, i) => {
               const c = CAT_MAP[key]
               return (
-                <StaggerItem key={key}>
-                  <Link to={`/explore?category=${key}`}
-                    className="card group hover:shadow-lift hover:-translate-y-1 hover:border-clay/40 transition-all duration-300 p-5 flex flex-col gap-6 h-full">
-                    <span className="text-xs font-semibold text-ink-faint">0{i + 1}</span>
-                    <span className="text-3xl group-hover:scale-110 transition-transform origin-left">{c.icon}</span>
-                    <span className="text-sm font-semibold text-ink group-hover:text-clay transition-colors">{c.label}</span>
-                  </Link>
+                <StaggerItem key={key} className="h-full">
+                  <Tilt className="h-full">
+                    <Link to={`/explore?category=${key}`}
+                      className="card group hover:shadow-lift hover:border-clay/40 transition-colors duration-300 p-5 flex flex-col gap-6 h-full relative overflow-hidden [transform-style:preserve-3d]">
+                      {/* depth glow behind icon */}
+                      <span className="pointer-events-none absolute -top-6 -left-6 w-24 h-24 bg-clay/0 group-hover:bg-clay/20 blur-2xl rounded-full transition-colors duration-300" style={{ transform: 'translateZ(-20px)' }} />
+                      <span className="text-xs font-semibold text-ink-faint relative" style={{ transform: 'translateZ(18px)' }}>0{i + 1}</span>
+                      <span className="text-4xl relative" style={{ transform: 'translateZ(48px)' }}>{c.icon}</span>
+                      <span className="text-sm font-semibold text-ink group-hover:text-clay transition-colors relative" style={{ transform: 'translateZ(28px)' }}>{c.label}</span>
+                    </Link>
+                  </Tilt>
                 </StaggerItem>
               )
             })}
@@ -154,14 +161,40 @@ export default function Home() {
         </Container>
       </section>
 
+      {/* OPTICS — zooming 3D lens */}
+      <section className="py-20 overflow-hidden">
+        <Container>
+          <div className="grid lg:grid-cols-2 gap-12 items-center">
+            <Reveal>
+              <p className="section-label mb-3">/ 04  Precision optics</p>
+              <h2 className="headline text-4xl sm:text-5xl font-bold text-ink">Glass that sees<br />the whole story.</h2>
+              <p className="text-ink-muted mt-4 text-lg leading-relaxed max-w-md">
+                Every photographer here shoots on gear they trust. Filter by the look you want — from wide-open bokeh to razor-sharp detail — and book the eye behind the lens.
+              </p>
+              <div className="flex flex-wrap gap-6 mt-8">
+                {[['ƒ/1.2', 'Dreamy bokeh'], ['4K', 'Cinematic video'], ['RAW', 'Full-res delivery']].map(([k, v]) => (
+                  <div key={k}>
+                    <div className="headline text-2xl font-bold text-clay">{k}</div>
+                    <div className="text-xs text-ink-muted mt-0.5">{v}</div>
+                  </div>
+                ))}
+              </div>
+            </Reveal>
+            <div className="flex justify-center py-6">
+              <LensZoom3D />
+            </div>
+          </div>
+        </Container>
+      </section>
+
       {/* HOW IT WORKS — oversized numerals */}
       <section className="py-16">
         <Container>
-          <SectionHeading eyebrow="/ 04  How it works" title="Book in three steps" />
+          <SectionHeading eyebrow="/ 05  How it works" title="Book in three steps" />
           <div className="grid md:grid-cols-3 gap-6 mt-10">
             {STEPS.map((s, i) => (
               <Reveal key={s.title} delay={i * 0.12} className="relative pt-8">
-                <span className="headline text-7xl font-bold text-line-strong absolute -top-2 left-0">{i + 1}</span>
+                <span className="headline text-6xl sm:text-7xl font-bold text-line-strong absolute -top-2 left-0">{i + 1}</span>
                 <div className="relative pl-2">
                   <h3 className="text-xl font-semibold text-ink mt-6">{s.title}</h3>
                   <p className="text-ink-muted mt-2 leading-relaxed">{s.text}</p>
@@ -173,8 +206,11 @@ export default function Home() {
         </Container>
       </section>
 
+      {/* Scroll-driven 3D camera */}
+      <CameraScrollShow />
+
       {/* CTA — crisp white invert card */}
-      <section className="pb-20">
+      <section className="pb-20 pt-16">
         <Container>
           <Reveal className="card-invert px-8 py-14 sm:px-14 relative overflow-hidden">
             <div className="absolute -bottom-20 -right-10 w-72 h-72 bg-clay/20 rounded-full blur-3xl" />

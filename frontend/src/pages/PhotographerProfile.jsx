@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom'
 import api from '../api/axios'
 import { useAuth } from '../context/AuthContext'
 import toast from 'react-hot-toast'
+import { CATEGORIES } from '../lib/categories'
 
 const ICONS = { wedding:'💍','pre-wedding':'🌸','post-wedding':'🥂',modeling:'👗',wildlife:'🦅',event:'🎉',portrait:'🎨',fashion:'✨',product:'📦',travel:'🌍',food:'🍽',architecture:'🏛',sports:'⚽',newborn:'👶',maternity:'🤱' }
 
@@ -313,7 +314,9 @@ export default function PhotographerProfile() {
                 <label className="label">Shoot Type *</label>
                 <select className="input" value={booking.category} onChange={e => setBooking({...booking, category: e.target.value})} required>
                   <option value="">Select what you need...</option>
-                  {profile.categories?.map(c => <option key={c} value={c} className="bg-[#13131a] capitalize">{ICONS[c]} {c}</option>)}
+                  {(profile.categories?.length ? profile.categories : CATEGORIES.map(c => c.key)).map(c => (
+                    <option key={c} value={c} className="capitalize">{ICONS[c]} {c}</option>
+                  ))}
                 </select>
               </div>
               <div className="grid grid-cols-2 gap-3">

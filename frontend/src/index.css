@@ -104,3 +104,28 @@
 @media (prefers-reduced-motion: reduce) {
   .cam-float, .cam-spin, .cam-spin-rev, .cam-iris, .cam-flash, .cam-ring, .cam-blink { animation: none; }
 }
+
+/* Self-centering spins (rotate around own box center regardless of position) */
+.spin-self { transform-box: fill-box; transform-origin: center; animation: cam-spin 16s linear infinite; }
+.spin-self-rev { transform-box: fill-box; transform-origin: center; animation: cam-spin-rev 22s linear infinite; }
+@media (prefers-reduced-motion: reduce) { .spin-self, .spin-self-rev { animation: none; } }
+
+/* Zooming 3D lens */
+@keyframes lens-dolly { 0%,100% { transform: rotateX(10deg) rotateY(-16deg) translateZ(-24px); } 50% { transform: rotateX(10deg) rotateY(16deg) translateZ(70px); } }
+@keyframes lens-iris { 0%,100% { transform: translate(-50%,-50%) scale(1); } 50% { transform: translate(-50%,-50%) scale(0.5); } }
+@keyframes lens-shine { 0% { transform: translate(-50%,-50%) rotate(0deg); } 100% { transform: translate(-50%,-50%) rotate(360deg); } }
+.lens3d { transform-style: preserve-3d; animation: lens-dolly 6s ease-in-out infinite; }
+.lens-iris { animation: lens-iris 6s ease-in-out infinite; }
+.lens-shine { animation: lens-shine 9s linear infinite; }
+@keyframes lens-aperture { 0%,100% { transform: rotate(0deg) scale(1); } 50% { transform: rotate(150deg) scale(0.6); } }
+.lens-aperture { transform-box: fill-box; transform-origin: center; animation: lens-aperture 6s ease-in-out infinite; }
+@keyframes lens-bokeh { 0%,100% { transform: translateZ(var(--z,80px)) translateY(0); opacity: 0.4; } 50% { transform: translateZ(var(--z,80px)) translateY(-14px); opacity: 0.85; } }
+.lens-bokeh { animation: lens-bokeh 5s ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce) { .lens3d, .lens-iris, .lens-shine, .lens-aperture, .lens-bokeh { animation: none; } }
+
+/* Scroll-driven camera show */
+@keyframes cam-pop { 0% { opacity: 0; transform: scale(0.3); } 60% { opacity: 1; transform: scale(1.08); } 100% { opacity: 1; transform: scale(1); } }
+.cam-pop { animation: cam-pop 0.55s cubic-bezier(0.22,1,0.36,1) both; }
+@keyframes cam-shot-flash { 0% { opacity: 0; transform: translate(-50%,-50%) scale(0.4); } 25% { opacity: 0.9; } 100% { opacity: 0; transform: translate(-50%,-50%) scale(1.9); } }
+.cam-shot-flash { animation: cam-shot-flash 0.5s ease-out both; }
+@media (prefers-reduced-motion: reduce) { .cam-pop { animation: none; } .cam-shot-flash { animation: none; opacity: 0; } }
